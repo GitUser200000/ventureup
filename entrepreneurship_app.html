@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VentureUp — Learn Entrepreneurship</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #0F1B2D;
+    --navy-mid: #1A2E47;
+    --navy-light: #243B55;
+    --amber: #F5A623;
+    --amber-dark: #D4891A;
+    --white: #FFFFFF;
+    --slate: #8A9BB0;
+    --slate-light: #C2CDD8;
+    --green: #22C55E;
+    --green-dark: #16A34A;
+    --red: #EF4444;
+    --purple: #8B5CF6;
+    --card-bg: #162035;
+    --border: rgba(138,155,176,0.15);
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'Inter', sans-serif;
+  }
+
+  body {
+    background: var(--navy);
+    color: var(--white);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* ── HOME ── */
+  #home { background: var(--navy); }
+
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--amber);
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--white); }
+
+  .streak-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(245,166,35,0.12);
+    border: 1px solid rgba(245,166,35,0.3);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--amber);
+  }
+
+  .xp-bar-wrap {
+    padding: 16px 24px;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .xp-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--slate); margin-bottom: 8px; font-weight: 500; }
+  .xp-track {
+    height: 10px;
+    background: var(--navy-light);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--amber), #FFD07B);
+    border-radius: 10px;
+    transition: width 1s cubic-bezier(.4,0,.2,1);
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--slate);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 20px 24px 8px;
+  }
+
+  /* ── TRACK CARDS ── */
+  .tracks { padding: 0 24px 100px; display: flex; flex-direction: column; gap: 12px; }
+
+  .track-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .18s ease, border-color .18s ease;
+    position: relative;
+  }
+  .track-card:hover { transform: translateY(-2px); border-color: rgba(245,166,35,0.4); }
+  .track-card.locked { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+  .track-card.locked::after {
+    content: "🔒 Complete previous track";
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(15,27,45,0.6);
+    font-size: 13px; color: var(--slate); font-weight: 600;
+    border-radius: 16px;
+  }
+
+  .track-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+  }
+
+  .track-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .track-info { flex: 1; }
+  .track-name { font-family: var(--font-display); font-weight: 700; font-size: 16px; }
+  .track-sub { font-size: 12px; color: var(--slate); margin-top: 2px; }
+
+  .track-progress-row {
+    padding: 0 18px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .mini-track {
+    flex: 1;
+    height: 6px;
+    background: var(--navy-light);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .mini-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.8s ease;
+  }
+  .mini-pct { font-size: 12px; font-weight: 600; color: var(--slate); min-width: 32px; text-align: right; }
+
+  .lesson-dots {
+    display: flex; gap: 4px; padding: 0 18px 14px;
+  }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--navy-light);
+    transition: background .2s;
+  }
+  .dot.done { background: var(--green); }
+  .dot.current { background: var(--amber); }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--card-bg);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 8px 0 20px;
+  }
+  .nav-btn {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    background: none; border: none; cursor: pointer;
+    color: var(--slate);
+    font-family: var(--font-body);
+    font-size: 10px; font-weight: 600;
+    padding: 8px;
+    transition: color .2s;
+  }
+  .nav-btn.active { color: var(--amber); }
+  .nav-icon { font-size: 22px; }
+
+  /* ── LESSON SCREEN ── */
+  #lesson { background: var(--navy); }
+
+  .lesson-top-bar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 20px 24px 12px;
+  }
+  .back-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--slate); font-size: 24px;
+    line-height: 1; padding: 4px;
+  }
+  .lesson-progress-track {
+    flex: 1; height: 8px;
+    background: var(--navy-light);
+    border-radius: 8px; overflow: hidden;
+  }
+  .lesson-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green), #4ADE80);
+    border-radius: 8px;
+    transition: width 0.4s ease;
+  }
+  .lives { display: flex; gap: 3px; }
+  .heart { font-size: 18px; }
+
+  .lesson-body { flex: 1; overflow-y: auto; padding: 12px 24px 120px; }
+
+  .q-type-badge {
+    display: inline-block;
+    background: rgba(139,92,246,0.15);
+    border: 1px solid rgba(139,92,246,0.3);
+    color: #A78BFA;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    border-radius: 6px; padding: 4px 10px; margin-bottom: 14px;
+  }
+
+  .q-prompt {
+    font-family: var(--font-display);
+    font-size: 20px; font-weight: 700;
+    line-height: 1.35;
+    margin-bottom: 8px;
+    color: var(--white);
+  }
+
+  .q-context {
+    background: rgba(245,166,35,0.08);
+    border-left: 3px solid var(--amber);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--slate-light);
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+
+  .option-btn {
+    background: var(--card-bg);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color .18s, background .18s, transform .1s;
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .option-btn:hover { border-color: rgba(245,166,35,0.5); background: rgba(245,166,35,0.05); }
+  .option-btn.selected { border-color: var(--amber); background: rgba(245,166,35,0.08); }
+  .option-btn.correct { border-color: var(--green); background: rgba(34,197,94,0.1); }
+  .option-btn.wrong { border-color: var(--red); background: rgba(239,68,68,0.08); }
+
+  .opt-letter {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--navy-light);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 700; font-size: 13px;
+    color: var(--slate); flex-shrink: 0;
+    transition: background .18s, color .18s;
+  }
+  .option-btn.selected .opt-letter { background: var(--amber); color: var(--navy); }
+  .option-btn.correct .opt-letter { background: var(--green); color: white; }
+  .option-btn.wrong .opt-letter { background: var(--red); color: white; }
+
+  .opt-text { font-size: 14px; line-height: 1.5; padding-top: 4px; }
+
+  /* Feedback banner */
+  .feedback-panel {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    padding: 20px 24px 32px;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(.4,0,.2,1);
+    z-index: 50;
+  }
+  .feedback-panel.show { transform: translateY(0); }
+  .feedback-panel.correct { background: #0D2A18; border-top: 2px solid var(--green); }
+  .feedback-panel.wrong { background: #2A0D0D; border-top: 2px solid var(--red); }
+
+  .feedback-top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .feedback-icon { font-size: 24px; }
+  .feedback-title {
+    font-family: var(--font-display);
+    font-weight: 800; font-size: 18px;
+  }
+  .feedback-panel.correct .feedback-title { color: var(--green); }
+  .feedback-panel.wrong .feedback-title { color: var(--red); }
+
+  .feedback-explain {
+    font-size: 13px; color: var(--slate-light);
+    line-height: 1.6; margin-bottom: 16px;
+  }
+
+  .continue-btn {
+    width: 100%;
+    background: var(--green); color: white;
+    font-family: var(--font-display);
+    font-weight: 700; font-size: 16px;
+    border: none; border-radius: 12px;
+    padding: 14px; cursor: pointer;
+    transition: background .18s, transform .1s;
+  }
+  .continue-btn:active { transform: scale(.98); }
+  .feedback-panel.wrong .continue-btn { background: var(--red); }
+
+  .check-btn {
+    position: fixed; bottom: 24px; left: 24px; right: 24px;
+    background: var(--amber); color: var(--navy);
+    font-family: var(--font-display);
+    font-weight: 800; font-size: 16px;
+    border: none; border-radius: 14px;
+    padding: 16px; cursor: pointer;
+    transition: background .18s, transform .12s, opacity .18s;
+    letter-spacing: 0.5px;
+    z-index: 40;
+  }
+  .check-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .check-btn:not(:disabled):active { transform: scale(.98); }
+  .check-btn.hidden { display: none; }
+
+  /* ── COMPLETE SCREEN ── */
+  #complete { background: var(--navy); align-items: center; justify-content: center; text-align: center; padding: 40px 32px; }
+
+  .complete-trophy { font-size: 72px; margin-bottom: 16px; animation: bounce 0.8s ease 0.3s both; }
+  @keyframes bounce { 0%{transform:scale(0)} 60%{transform:scale(1.2)} 100%{transform:scale(1)} }
+
+  .complete-title { font-family: var(--font-display); font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+  .complete-sub { color: var(--slate); font-size: 15px; margin-bottom: 32px; }
+
+  .stats-row { display: flex; gap: 16px; margin-bottom: 36px; }
+  .stat-box {
+    flex: 1; background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 18px 12px;
+  }
+  .stat-num { font-family: var(--font-display); font-size: 28px; font-weight: 800; color: var(--amber); }
+  .stat-label { font-size: 11px; color: var(--slate); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+  .home-btn {
+    width: 100%;
+    background: var(--amber); color: var(--navy);
+    font-family: var(--font-display); font-weight: 800; font-size: 16px;
+    border: none; border-radius: 14px; padding: 16px;
+    cursor: pointer; transition: background .18s;
+  }
+
+  /* ── LEADERBOARD ── */
+  #leaderboard { background: var(--navy); overflow-y: auto; padding-bottom: 100px; }
+
+  .lb-header { padding: 20px 24px 12px; font-family: var(--font-display); font-size: 22px; font-weight: 800; }
+  .lb-sub { color: var(--slate); font-size: 13px; font-weight: 400; }
+
+  .lb-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--border);
+    transition: background .15s;
+  }
+  .lb-item.you { background: rgba(245,166,35,0.07); }
+  .lb-rank { font-family: var(--font-display); font-weight: 800; font-size: 18px; width: 28px; color: var(--slate); }
+  .lb-rank.gold { color: #FFD700; }
+  .lb-rank.silver { color: #C0C0C0; }
+  .lb-rank.bronze { color: #CD7F32; }
+  .lb-avatar { font-size: 30px; }
+  .lb-info { flex: 1; }
+  .lb-name { font-weight: 600; font-size: 15px; }
+  .lb-xp { font-size: 12px; color: var(--slate); }
+  .lb-xp-pill {
+    background: rgba(245,166,35,0.12);
+    border: 1px solid rgba(245,166,35,0.3);
+    color: var(--amber);
+    font-family: var(--font-display);
+    font-weight: 700; font-size: 13px;
+    border-radius: 20px; padding: 4px 12px;
+  }
+
+  /* ── PROFILE ── */
+  #profile { background: var(--navy); overflow-y: auto; padding-bottom: 100px; }
+
+  .profile-hero {
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border);
+    padding: 28px 24px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .profile-avatar { font-size: 52px; }
+  .profile-name { font-family: var(--font-display); font-size: 22px; font-weight: 800; }
+  .profile-title { font-size: 13px; color: var(--amber); font-weight: 600; margin-top: 2px; }
+
+  .badges-section { padding: 16px 24px; }
+  .badge-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  .badge {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    min-width: 70px;
+  }
+  .badge-icon { font-size: 28px; }
+  .badge-name { font-size: 11px; color: var(--slate); font-weight: 600; text-align: center; }
+  .badge.locked { opacity: 0.35; filter: grayscale(1); }
+
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 24px; }
+  .stat-card {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px;
+  }
+  .stat-card-num { font-family: var(--font-display); font-size: 26px; font-weight: 800; color: var(--amber); }
+  .stat-card-label { font-size: 12px; color: var(--slate); margin-top: 2px; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--navy-light); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ HOME SCREEN ══════════════ -->
+<div id="home" class="screen active">
+  <div class="top-bar">
+    <div class="logo">Venture<span>Up</span></div>
+    <div class="streak-badge">🔥 <span id="streak-count">5</span> day streak</div>
+  </div>
+
+  <div class="xp-bar-wrap">
+    <div class="xp-label">
+      <span>⚡ <strong id="xp-total">340</strong> XP — Level <span id="level">4</span></span>
+      <span><span id="xp-next">160</span> XP to next level</span>
+    </div>
+    <div class="xp-track"><div class="xp-fill" id="xp-fill" style="width:68%"></div></div>
+  </div>
+
+  <div class="section-title">Your Learning Path</div>
+  <div class="tracks" id="track-list"></div>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="showTab('home')"><div class="nav-icon">🏠</div>Learn</button>
+    <button class="nav-btn" onclick="showTab('leaderboard')"><div class="nav-icon">🏆</div>Ranks</button>
+    <button class="nav-btn" onclick="showTab('profile')"><div class="nav-icon">👤</div>Profile</button>
+  </nav>
+</div>
+
+<!-- ══════════════ LESSON SCREEN ══════════════ -->
+<div id="lesson" class="screen">
+  <div class="lesson-top-bar">
+    <button class="back-btn" onclick="exitLesson()">✕</button>
+    <div class="lesson-progress-track"><div class="lesson-progress-fill" id="lesson-prog"></div></div>
+    <div class="lives" id="lives-display"></div>
+  </div>
+
+  <div class="lesson-body" id="lesson-body"></div>
+
+  <div class="feedback-panel" id="feedback-panel">
+    <div class="feedback-top">
+      <div class="feedback-icon" id="fb-icon"></div>
+      <div class="feedback-title" id="fb-title"></div>
+    </div>
+    <div class="feedback-explain" id="fb-explain"></div>
+    <button class="continue-btn" id="fb-continue" onclick="nextQuestion()">Continue</button>
+  </div>
+
+  <button class="check-btn" id="check-btn" disabled onclick="checkAnswer()">Check Answer</button>
+</div>
+
+<!-- ══════════════ COMPLETE SCREEN ══════════════ -->
+<div id="complete" class="screen">
+  <div class="complete-trophy">🎉</div>
+  <div class="complete-title">Lesson Complete!</div>
+  <div class="complete-sub" id="complete-sub">You earned XP and learned something new.</div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-num" id="c-xp">+50</div><div class="stat-label">XP Earned</div></div>
+    <div class="stat-box"><div class="stat-num" id="c-acc">100%</div><div class="stat-label">Accuracy</div></div>
+    <div class="stat-box"><div class="stat-num" id="c-streak">5🔥</div><div class="stat-label">Streak</div></div>
+  </div>
+  <button class="home-btn" onclick="goHome()">← Back to Learning Path</button>
+</div>
+
+<!-- ══════════════ LEADERBOARD SCREEN ══════════════ -->
+<div id="leaderboard" class="screen">
+  <div class="lb-header">Weekly Ranks <div class="lb-sub">Top entrepreneurs this week</div></div>
+  <div id="lb-list"></div>
+  <nav class="bottom-nav">
+    <button class="nav-btn" onclick="showTab('home')"><div class="nav-icon">🏠</div>Learn</button>
+    <button class="nav-btn active" onclick="showTab('leaderboard')"><div class="nav-icon">🏆</div>Ranks</button>
+    <button class="nav-btn" onclick="showTab('profile')"><div class="nav-icon">👤</div>Profile</button>
+  </nav>
+</div>
+
+<!-- ══════════════ PROFILE SCREEN ══════════════ -->
+<div id="profile" class="screen">
+  <div class="profile-hero">
+    <div class="profile-avatar">🚀</div>
+    <div>
+      <div class="profile-name">Lesley M.</div>
+      <div class="profile-title">Startup Founder · Level 4</div>
+    </div>
+  </div>
+  <div style="padding: 16px 24px 8px">
+    <div class="section-title" style="padding: 0 0 12px">Your Stats</div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-card-num" id="p-xp">340</div><div class="stat-card-label">Total XP</div></div>
+      <div class="stat-card"><div class="stat-card-num" id="p-streak">5 🔥</div><div class="stat-card-label">Day Streak</div></div>
+      <div class="stat-card"><div class="stat-card-num" id="p-lessons">12</div><div class="stat-card-label">Lessons Done</div></div>
+      <div class="stat-card"><div class="stat-card-num" id="p-acc">78%</div><div class="stat-card-label">Avg Accuracy</div></div>
+    </div>
+  </div>
+  <div class="badges-section">
+    <div class="section-title" style="padding: 0 0 4px">Badges</div>
+    <div class="badge-grid" id="badge-grid"></div>
+  </div>
+  <nav class="bottom-nav">
+    <button class="nav-btn" onclick="showTab('home')"><div class="nav-icon">🏠</div>Learn</button>
+    <button class="nav-btn" onclick="showTab('leaderboard')"><div class="nav-icon">🏆</div>Ranks</button>
+    <button class="nav-btn active" onclick="showTab('profile')"><div class="nav-icon">👤</div>Profile</button>
+  </nav>
+</div>
+
+<script>
+// ══════════════════════════════════
+//  DATA
+// ══════════════════════════════════
+const TRACKS = [
+  {
+    id: 0, name: "Idea Validation", sub: "Test before you build",
+    icon: "💡", color: "#F5A623", lessons: 5, done: 3,
+    questions: [
+      {
+        type: "CONCEPT",
+        prompt: "What is the #1 goal of idea validation?",
+        context: "Most startups fail not because they build the product badly — but because they build the wrong product. Validation is how you find out before spending real money.",
+        options: ["Getting investors interested early","Proving a real problem exists before building","Writing a detailed business plan","Hiring the right technical team"],
+        correct: 1,
+        explain: "Validation is about confirming a real, painful problem exists for real people — before you invest in building a solution. It saves time and money."
+      },
+      {
+        type: "SCENARIO",
+        prompt: "Sipho wants to build a grocery delivery app for Cape Town. What should he do FIRST?",
+        context: "He has no technical background but has R50,000 saved and 6 months to test his idea.",
+        options: ["Hire developers and start coding","Run 20 customer interviews to understand the problem","Create a detailed financial model","Launch a social media page and wait for followers"],
+        correct: 1,
+        explain: "Customer discovery interviews come before any building. 20 conversations with potential customers will reveal more than 6 months of coding the wrong thing."
+      },
+      {
+        type: "CONCEPT",
+        prompt: "What is a 'smoke test' in entrepreneurship?",
+        context: "Before building a product, entrepreneurs need low-cost ways to gauge real demand. A smoke test checks if people will act — not just say they like the idea.",
+        options: ["Testing if your office has a fire plan","A fake landing page that collects sign-ups before the product exists","A product trial with 5 close friends","Presenting to 3 investors for early feedback"],
+        correct: 1,
+        explain: "A smoke test (like a landing page with a 'Join Waitlist' button) measures real demand. If nobody signs up when asked, the market may be smaller than expected."
+      },
+      {
+        type: "SCENARIO",
+        prompt: "Amara asks 10 friends about her app idea and they all say 'I'd definitely use it.' Should she start building?",
+        context: "Friends and family are notoriously poor validators — they want to be supportive, not honest.",
+        options: ["Yes — 10 people is a great sample size","Yes — friends give the most honest feedback","No — friends say yes to be kind; she needs strangers to pay or commit","No — she should get 100 friends to confirm first"],
+        correct: 2,
+        explain: "The 'Mom Test' (Rob Fitzpatrick) says: ask people about their actual behaviour, not hypothetical intent. Friends lie to protect your feelings. Strangers paying tell the truth."
+      },
+      {
+        type: "CONCEPT",
+        prompt: "What does 'PMF' stand for and why does it matter?",
+        context: "Investors and founders talk about PMF constantly. Getting there is the single most important milestone for an early-stage startup.",
+        options: ["Product Manufacturing Framework — for production planning","Product-Market Fit — when your product deeply satisfies a market need","Product Metrics Framework — your KPI dashboard","Performance Management Formula — for hiring decisions"],
+        correct: 1,
+        explain: "Product-Market Fit means your product so strongly solves a real problem that customers pull you forward. Sean Ellis's test: if >40% of users would be 'very disappointed' without your product, you have PMF."
+      }
+    ]
+  },
+  {
+    id: 1, name: "Business Models", sub: "How you make money",
+    icon: "📊", color: "#22C55E", lessons: 5, done: 1,
+    questions: [
+      {
+        type: "CONCEPT",
+        prompt: "What is the key difference between a business model and a business plan?",
+        context: "These terms are often confused, but understanding both is critical for communicating with investors and partners.",
+        options: ["A business plan is shorter and simpler","A business model describes HOW you make money; a plan details WHAT you'll do to execute it","They are the same thing with different names","A business model only applies to tech companies"],
+        correct: 1,
+        explain: "A business model is the logic of how you create, deliver, and capture value. A business plan is the operational document that maps out execution. You need both — but the model comes first."
+      },
+      {
+        type: "SCENARIO",
+        prompt: "Thandi's water testing lab charges clients per test. What business model is this?",
+        context: "She runs 200 tests/month at R350 each. She's also considering a monthly subscription for corporate clients.",
+        options: ["SaaS (Software-as-a-Service)","Transactional / Fee-for-service","Franchise","Freemium"],
+        correct: 1,
+        explain: "Charging per transaction is the classic fee-for-service model. It's simple and low-friction, but revenue is unpredictable. A corporate subscription would add recurring revenue — predictable and more valuable to investors."
+      },
+      {
+        type: "CONCEPT",
+        prompt: "What is 'unit economics' and why do investors care so much about it?",
+        context: "Investors often ask: 'What's your LTV:CAC ratio?' before they ask about your total revenue.",
+        options: ["The total revenue of your business in year one","The profit or loss generated by one unit of your product/service","The number of units you plan to sell","Your cost per employee"],
+        correct: 1,
+        explain: "Unit economics = revenue minus cost for a single customer or transaction. LTV (Lifetime Value) should be at least 3× CAC (Customer Acquisition Cost) for a healthy business. It proves your model works before you scale."
+      },
+      {
+        type: "SCENARIO",
+        prompt: "It costs Rethabile R200 to acquire each customer (CAC) and each customer spends R150 total (LTV). Is this business viable?",
+        context: "She is spending R200 to acquire customers who only ever bring R150. She is currently growing fast.",
+        options: ["Yes — growth rate is all that matters","Yes — she just needs more funding to scale","No — she loses R50 per customer; scaling makes the loss worse","No — the problem is her pricing, not her model"],
+        correct: 2,
+        explain: "A CAC greater than LTV is a death sentence. Scaling a broken unit economics model just burns more money faster. She must fix LTV (raise prices, increase retention) or cut CAC before scaling."
+      },
+      {
+        type: "CONCEPT",
+        prompt: "What is the defining feature of a 'platform' business model?",
+        context: "Airbnb, Uber, and Takealot are all platforms. They're valued very differently from traditional businesses.",
+        options: ["They manufacture their own products","They connect two or more user groups and create value through their interactions","They operate on a subscription basis","They are exclusively online businesses"],
+        correct: 1,
+        explain: "Platforms create value by facilitating transactions between groups (e.g., hosts & guests, drivers & riders). They often own no inventory yet dominate markets. Network effects make platforms hard to displace."
+      }
+    ]
+  },
+  {
+    id: 2, name: "Funding & Finance", sub: "Get and manage capital",
+    icon: "💰", color: "#8B5CF6", lessons: 5, done: 0,
+    questions: [
+      {
+        type: "CONCEPT",
+        prompt: "What is bootstrapping?",
+        context: "Many of the world's most successful companies were bootstrapped early — including Mailchimp and GitHub.",
+        options: ["Raising funding from venture capitalists","Getting a bank loan with personal assets as collateral","Building a business using only personal savings and revenue, without external investment","Copying an existing successful business model"],
+        correct: 2,
+        explain: "Bootstrapping means funding your business yourself — from savings and early revenue. It forces you to find paying customers fast, keeps you fully in control, and proves the model before you take on investors."
+      },
+      {
+        type: "SCENARIO",
+        prompt: "Kofi's startup is 6 months old, has 3 paying customers, and needs R500K to grow. Which funding source is MOST realistic?",
+        context: "He has no revenue history, but strong traction. Venture capital typically invests from Series A (~R5M+). He's in South Africa.",
+        options: ["Series A venture capital","JSE listing","Angel investor or seed fund (e.g., 4Di Capital, Knife Capital)","Government grant from SEDA"],
+        correct: 2,
+        explain: "At 6 months with early traction, angel investors and seed funds (like 4Di Capital or Savant) are the right fit. VCs enter later; JSE is years away; SEDA grants are for different stages but worth exploring alongside angels."
+      },
+      {
+        type: "CONCEPT",
+        prompt: "What does 'dilution' mean when you accept equity investment?",
+        context: "Every time you issue new shares to investors, existing shareholders own a smaller percentage of the company.",
+        options: ["Your product quality decreases","Your ownership percentage of the company decreases","Your company valuation goes down","Your bank account balance reduces"],
+        correct: 1,
+        explain: "If you own 100% and raise money by giving away 20% equity, you now own 80%. The pie got bigger (more money in the company), but your slice got smaller. Dilution is normal — just be strategic about when and how much."
+      },
+      {
+        type: "SCENARIO",
+        prompt: "An investor offers R1M for 40% equity. Your startup is 8 months old with R30K/month revenue. Should you take it?",
+        context: "40% equity means the investor values your company at R2.5M pre-money. You'd own 60% after investment.",
+        options: ["Yes — R1M is a lot of money for a startup","Yes — investors know best what a company is worth","Probably not — 40% at this early stage is very expensive equity; negotiate or find better terms","No — never take investor money at any stage"],
+        correct: 2,
+        explain: "40% this early is very steep. With R30K/month revenue and growth, your value should be higher. Counter-offer at 15–25%. High dilution early means less ownership for future rounds. Use a term sheet comparison."
+      },
+      {
+        type: "CONCEPT",
+        prompt: "What is 'runway' in startup finance?",
+        context: "Every founder should know their runway at all times. It determines when you need to fundraise or reach profitability.",
+        options: ["The length of your go-to-market strategy","How many months you can operate before running out of cash","Your revenue growth rate","Your product roadmap timeline"],
+        correct: 1,
+        explain: "Runway = Cash on Hand ÷ Monthly Burn Rate. If you have R500K and spend R100K/month, you have 5 months runway. Founders should always be fundraising 6–9 months before runway runs out."
+      }
+    ]
+  },
+  {
+    id: 3, name: "Marketing & Sales", sub: "Find and keep customers",
+    icon: "📣", color: "#EF4444", lessons: 5, done: 0, locked: true,
+    questions: []
+  },
+  {
+    id: 4, name: "Building a Team", sub: "Hire right, lead well",
+    icon: "👥", color: "#06B6D4", lessons: 5, done: 0, locked: true,
+    questions: []
+  }
+];
+
+const LEADERBOARD = [
+  { name: "Sipho M.", xp: 1840, avatar: "🦁", you: false },
+  { name: "Amara N.", xp: 1620, avatar: "🌟", you: false },
+  { name: "Kofi A.", xp: 1450, avatar: "🦅", you: false },
+  { name: "Lesley M.", xp: 1240, avatar: "🚀", you: true },
+  { name: "Thandi K.", xp: 980, avatar: "🌸", you: false },
+  { name: "Rethabile M.", xp: 820, avatar: "⚡", you: false },
+  { name: "David O.", xp: 710, avatar: "🎯", you: false },
+  { name: "Priya S.", xp: 580, avatar: "💫", you: false },
+];
+
+const BADGES = [
+  { icon: "🌱", name: "First Lesson", unlocked: true },
+  { icon: "🔥", name: "5-Day Streak", unlocked: true },
+  { icon: "💡", name: "Idea Guru", unlocked: true },
+  { icon: "📊", name: "Model Mind", unlocked: false },
+  { icon: "💰", name: "Funded", unlocked: false },
+  { icon: "🏆", name: "Top 5", unlocked: false },
+];
+
+// ══════════════════════════════════
+//  STATE
+// ══════════════════════════════════
+let state = {
+  xp: 340, level: 4, streak: 5,
+  currentTrack: null,
+  questions: [],
+  qIndex: 0,
+  selected: null,
+  answered: false,
+  lives: 3,
+  correctCount: 0,
+  lessonStartTime: null,
+  tracks: TRACKS.map(t => ({ ...t }))
+};
+
+// ══════════════════════════════════
+//  HOME
+// ══════════════════════════════════
+function renderHome() {
+  const list = document.getElementById('track-list');
+  list.innerHTML = '';
+  state.tracks.forEach(t => {
+    const pct = Math.round((t.done / t.lessons) * 100);
+    const dotsHTML = Array.from({length: t.lessons}, (_, i) =>
+      `<div class="dot ${i < t.done ? 'done' : (i === t.done ? 'current' : '')}"></div>`
+    ).join('');
+    const card = document.createElement('div');
+    card.className = 'track-card' + (t.locked ? ' locked' : '');
+    card.innerHTML = `
+      <div class="track-header">
+        <div class="track-icon" style="background:${t.color}22;color:${t.color}">${t.icon}</div>
+        <div class="track-info">
+          <div class="track-name">${t.name}</div>
+          <div class="track-sub">${t.sub} · ${t.lessons} lessons</div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:${t.color}">${pct}%</div>
+      </div>
+      <div class="lesson-dots">${dotsHTML}</div>
+      <div class="track-progress-row">
+        <div class="mini-track"><div class="mini-fill" style="width:${pct}%;background:${t.color}"></div></div>
+        <div class="mini-pct">${t.done}/${t.lessons}</div>
+      </div>`;
+    if (!t.locked) card.onclick = () => startLesson(t.id);
+    list.appendChild(card);
+  });
+  document.getElementById('streak-count').textContent = state.streak;
+  document.getElementById('xp-total').textContent = state.xp;
+  document.getElementById('level').textContent = state.level;
+  const xpInLevel = state.xp % 500;
+  const pct = Math.round((xpInLevel / 500) * 100);
+  document.getElementById('xp-fill').style.width = pct + '%';
+  document.getElementById('xp-next').textContent = 500 - xpInLevel;
+}
+
+// ══════════════════════════════════
+//  LESSON
+// ══════════════════════════════════
+function startLesson(trackId) {
+  const track = state.tracks[trackId];
+  state.currentTrack = trackId;
+  state.questions = track.questions;
+  state.qIndex = 0;
+  state.selected = null;
+  state.answered = false;
+  state.lives = 3;
+  state.correctCount = 0;
+  state.lessonStartTime = Date.now();
+  showScreen('lesson');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = state.questions[state.qIndex];
+  const prog = ((state.qIndex) / state.questions.length) * 100;
+  document.getElementById('lesson-prog').style.width = prog + '%';
+
+  const livesHTML = Array.from({length: 3}, (_, i) =>
+    `<span class="heart">${i < state.lives ? '❤️' : '🖤'}</span>`
+  ).join('');
+  document.getElementById('lives-display').innerHTML = livesHTML;
+
+  const optsHTML = q.options.map((opt, i) => `
+    <button class="option-btn" id="opt-${i}" onclick="selectOption(${i})">
+      <div class="opt-letter">${String.fromCharCode(65+i)}</div>
+      <div class="opt-text">${opt}</div>
+    </button>`).join('');
+
+  document.getElementById('lesson-body').innerHTML = `
+    <div class="q-type-badge">${q.type}</div>
+    <div class="q-prompt">${q.prompt}</div>
+    ${q.context ? `<div class="q-context">💬 ${q.context}</div>` : ''}
+    <div class="options">${optsHTML}</div>`;
+
+  state.selected = null;
+  state.answered = false;
+  const checkBtn = document.getElementById('check-btn');
+  checkBtn.disabled = true;
+  checkBtn.classList.remove('hidden');
+  checkBtn.textContent = 'Check Answer';
+  hideFeedback();
+}
+
+function selectOption(idx) {
+  if (state.answered) return;
+  state.selected = idx;
+  document.querySelectorAll('.option-btn').forEach((b, i) => {
+    b.classList.remove('selected');
+    if (i === idx) b.classList.add('selected');
+  });
+  document.getElementById('check-btn').disabled = false;
+}
+
+function checkAnswer() {
+  if (state.selected === null || state.answered) return;
+  state.answered = true;
+  const q = state.questions[state.qIndex];
+  const isCorrect = state.selected === q.correct;
+  document.getElementById('check-btn').classList.add('hidden');
+
+  if (isCorrect) {
+    state.correctCount++;
+    document.getElementById(`opt-${state.selected}`).classList.add('correct');
+    showFeedback(true, q.explain);
+  } else {
+    state.lives--;
+    document.getElementById(`opt-${state.selected}`).classList.add('wrong');
+    document.getElementById(`opt-${q.correct}`).classList.add('correct');
+    showFeedback(false, q.explain);
+    document.getElementById('lives-display').innerHTML = Array.from({length: 3}, (_, i) =>
+      `<span class="heart">${i < state.lives ? '❤️' : '🖤'}</span>`
+    ).join('');
+  }
+}
+
+function showFeedback(correct, explain) {
+  const panel = document.getElementById('feedback-panel');
+  panel.className = 'feedback-panel show ' + (correct ? 'correct' : 'wrong');
+  document.getElementById('fb-icon').textContent = correct ? '✅' : '❌';
+  document.getElementById('fb-title').textContent = correct ? 'Correct!' : 'Incorrect';
+  document.getElementById('fb-explain').textContent = explain;
+  document.getElementById('fb-continue').textContent = state.qIndex < state.questions.length - 1 ? 'Continue' : 'Finish Lesson';
+}
+
+function hideFeedback() {
+  const panel = document.getElementById('feedback-panel');
+  panel.className = 'feedback-panel';
+}
+
+function nextQuestion() {
+  state.qIndex++;
+  if (state.qIndex >= state.questions.length) {
+    finishLesson();
+  } else {
+    renderQuestion();
+  }
+}
+
+function finishLesson() {
+  const acc = Math.round((state.correctCount / state.questions.length) * 100);
+  const xpEarned = state.correctCount * 10 + (acc === 100 ? 20 : 0);
+  state.xp += xpEarned;
+  if (state.xp >= state.level * 500) state.level++;
+
+  // Update track progress
+  const t = state.tracks[state.currentTrack];
+  if (t.done < t.lessons) t.done++;
+  // Unlock next track if this one is done
+  if (t.done >= t.lessons && state.currentTrack + 1 < state.tracks.length) {
+    state.tracks[state.currentTrack + 1].locked = false;
+  }
+
+  document.getElementById('c-xp').textContent = '+' + xpEarned;
+  document.getElementById('c-acc').textContent = acc + '%';
+  document.getElementById('c-streak').textContent = state.streak + '🔥';
+  document.getElementById('complete-sub').textContent =
+    `You completed a ${state.tracks[state.currentTrack].name} lesson!`;
+  showScreen('complete');
+}
+
+function exitLesson() { goHome(); }
+function goHome() { renderHome(); showScreen('home'); }
+
+// ══════════════════════════════════
+//  LEADERBOARD
+// ══════════════════════════════════
+function renderLeaderboard() {
+  const list = document.getElementById('lb-list');
+  const rankClass = ['gold','silver','bronze'];
+  list.innerHTML = LEADERBOARD.map((p, i) => `
+    <div class="lb-item ${p.you ? 'you' : ''}">
+      <div class="lb-rank ${rankClass[i] || ''}">${i < 3 ? ['🥇','🥈','🥉'][i] : i+1}</div>
+      <div class="lb-avatar">${p.avatar}</div>
+      <div class="lb-info">
+        <div class="lb-name">${p.name} ${p.you ? '(You)' : ''}</div>
+        <div class="lb-xp">Weekly learner</div>
+      </div>
+      <div class="lb-xp-pill">${p.xp} XP</div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════
+//  PROFILE
+// ══════════════════════════════════
+function renderProfile() {
+  document.getElementById('p-xp').textContent = state.xp;
+  document.getElementById('p-streak').textContent = state.streak + ' 🔥';
+  const doneCount = state.tracks.reduce((a, t) => a + t.done, 0);
+  document.getElementById('p-lessons').textContent = doneCount;
+  document.getElementById('p-acc').textContent = '78%';
+
+  document.getElementById('badge-grid').innerHTML = BADGES.map(b => `
+    <div class="badge ${b.unlocked ? '' : 'locked'}">
+      <div class="badge-icon">${b.icon}</div>
+      <div class="badge-name">${b.name}</div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showTab(tab) {
+  if (tab === 'home') { renderHome(); showScreen('home'); }
+  else if (tab === 'leaderboard') { renderLeaderboard(); showScreen('leaderboard'); }
+  else if (tab === 'profile') { renderProfile(); showScreen('profile'); }
+}
+
+// ══════════════════════════════════
+//  INIT
+// ══════════════════════════════════
+renderHome();
+</script>
+</body>
+</html>
